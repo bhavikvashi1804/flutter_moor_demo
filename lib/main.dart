@@ -14,10 +14,14 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return Provider(
-      builder: (context) => AppDatabase().taskDao,
+    final db = AppDatabase();
+    return MultiProvider(
+      providers: [
+        Provider(builder: (_) => db.taskDao),
+        Provider(builder: (_) => db.tagDao),
+      ],
       child: MaterialApp(
-        title: 'Flutter Moor',
+        title: 'Material App',
         home: HomePage(),
       ),
     );
