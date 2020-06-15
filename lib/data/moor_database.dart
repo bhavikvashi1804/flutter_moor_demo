@@ -12,6 +12,15 @@ class Tasks extends Table {
   BoolColumn get completed => boolean().withDefault(Constant(false))();
 }
 
+class Tags extends Table{
+  TextColumn get name=>text().withLength(min:1,max:10)();
+  IntColumn get color=>integer()();
+
+  //set manual primary key
+  @override
+  Set<Column> get primaryKey =>{name};
+}
+
 @UseMoor(tables: [Tasks], daos: [TaskDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase()
