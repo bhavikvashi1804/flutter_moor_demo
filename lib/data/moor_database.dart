@@ -22,6 +22,17 @@ class Tags extends Table{
   Set<Column> get primaryKey =>{name};
 }
 
+
+class TaskWithTag {
+  final Task task;
+  final Tag tag;
+
+  TaskWithTag({
+    @required this.task,
+    @required this.tag,
+  });
+}
+
 @UseMoor(tables: [Tasks,Tags], daos: [TaskDao,TagDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase()
@@ -72,10 +83,7 @@ class AppDatabase extends _$AppDatabase {
 
 
 @UseDao(
-  tables: [Tasks],
-  queries: {
-    'completedTasksGenerated':'SELECT * FROM tasks WHERE completed = 1 ORDER BY due_date DESC, name;'
-  }
+  tables: [Tasks,Tags],
 )
 class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   final AppDatabase db;
@@ -83,52 +91,43 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   // Called by the AppDatabase class
   TaskDao(this.db) : super(db);
 
-  Future<List<Task>> getAllTasks() => select(tasks).get();
-  Stream<List<Task>> watchAllTasks(){
-    return (select(tasks)..orderBy([
-      (t)=>OrderingTerm(
-        expression: t.dueDate,
-        mode: OrderingMode.desc
-      ),
-       (t)=>OrderingTerm(
-        expression: t.name,
-        mode: OrderingMode.asc
-      ),
-    ]))
-    .watch();
-    
-  }
-
-
-  Stream<List<Task>> watchCompletedTasks(){
-    return (select(tasks)..orderBy([
-      (t)=>OrderingTerm(
-        expression: t.dueDate,
-        mode: OrderingMode.desc
-      ),
-       (t)=>OrderingTerm(
-        expression: t.name,
-        mode: OrderingMode.asc
-      ),
-    ])
-    ..where((tbl) => tbl.completed.equals(true))
-    )
-    .watch();
-  }
-
-  
-  Stream<List<Task>> watchCompletedTasksCustom() {
-    return customSelectStream(
-      'SELECT * FROM tasks WHERE completed = 1 ORDER BY due_date DESC, name;',
-      // The Stream will emit new values when the data inside the Tasks table changes
-      readsFrom: {tasks},
-    )
-        // customSelect or customSelectStream gives us QueryRow list
-        // This runs each time the Stream emits a new value.
-        .map((rows) {
-      // Turning the data of a row into a Task object
-      return rows.map((row) => Task.fromData(row.data, db)).toList();
-    });
+  // Return TaskWithTag now
+  Stream<List<TaskWithTag>> watchAllTasks() {
+    // Wrap the whole select statement in parenthesis
+    return (select(tasks)
+          // Statements like orderBy and where return void => the need to use a cascading ".." operator
+          ..orderBy(
+            ([
+              // Primary sorting by due date
+              (t) =>
+                  OrderingTerm(expression: t.dueDate, mode: OrderingMode.asc),
+              // Secondary alphabetical sorting
+              (t) => OrderingTerm(expression: t.name),
+            ]),
+          ))
+        // As opposed to orderBy or where, join returns a value. This is what we want to watch/get.
+        .join(
+          [
+            // Join all the tasks with their tags.
+            // It's important that we use equalsExp and not just equals.
+            // This way, we can join using all tag names in the tasks table, not just a specific one.
+            leftOuterJoin(tags, tags.name.equalsExp(tasks.tagName)),
+          ],
+        )
+        // watch the whole select statement including the join
+        .watch()
+        // Watching a join gets us a Stream of List<TypedResult>
+        // Mapping each List<TypedResult> emitted by the Stream to a List<TaskWithTag>
+        .map(
+          (rows) => rows.map(
+            (row) {
+              return TaskWithTag(
+                task: row.readTable(tasks),
+                tag: row.readTable(tags),
+              );
+            },
+          ).toList(),
+        );
   }
 
   Future insertTask(Insertable<Task> task) => into(tasks).insert(task);

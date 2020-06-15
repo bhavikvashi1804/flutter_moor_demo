@@ -450,30 +450,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 mixin _$TaskDaoMixin on DatabaseAccessor<AppDatabase> {
   $TasksTable get tasks => db.tasks;
-  Task _rowToTask(QueryRow row) {
-    return Task(
-      id: row.readInt('id'),
-      tagName: row.readString('tag_name'),
-      name: row.readString('name'),
-      dueDate: row.readDateTime('due_date'),
-      completed: row.readBool('completed'),
-    );
-  }
-
-  Future<List<Task>> completedTasksGenerated(
-      {@Deprecated('No longer needed with Moor 1.6 - see the changelog for details')
-          QueryEngine operateOn}) {
-    return (operateOn ?? this).customSelect(
-        'SELECT * FROM tasks WHERE completed = 1 ORDER BY due_date DESC, name;',
-        variables: []).then((rows) => rows.map(_rowToTask).toList());
-  }
-
-  Stream<List<Task>> watchCompletedTasksGenerated() {
-    return customSelectStream(
-        'SELECT * FROM tasks WHERE completed = 1 ORDER BY due_date DESC, name;',
-        variables: [],
-        readsFrom: {tasks}).map((rows) => rows.map(_rowToTask).toList());
-  }
+  $TagsTable get tags => db.tags;
 }
 
 mixin _$TagDaoMixin on DatabaseAccessor<AppDatabase> {
