@@ -11,11 +11,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool showCompleted = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: Text('Tasks'),
+          actions: <Widget>[
+            _buildCompletedOnlySwitch(),
+          ],
         ),
         body: Column(
           children: <Widget>[
@@ -25,11 +30,28 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 
+  Row _buildCompletedOnlySwitch() {
+    return Row(
+      children: <Widget>[
+        Text('Completed only'),
+        Switch(
+          value: showCompleted,
+          activeColor: Colors.white,
+          onChanged: (newValue) {
+            setState(() {
+              showCompleted = newValue;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
   StreamBuilder<List<Task>> _buildTaskList(BuildContext context) {
-    final database = Provider.of<AppDatabase>(context);
+    final dao = Provider.of<TaskDao>(context);
     return StreamBuilder(
       //provide the stream of database
-      stream: database.watchAllTasks(),
+      stream: dao.watchAllTasks(),
       builder: (context, AsyncSnapshot<List<Task>> snapshot) {
         final tasks = snapshot.data ?? List();
 
@@ -40,14 +62,14 @@ class _HomePageState extends State<HomePage> {
             //fetch the one task
             //use this one task and display using component
             //we also need to provide database because we want to delete the data
-            return _buildListItem(itemTask, database);
+            return _buildListItem(itemTask, dao);
           },
         );
       },
     );
   }
 
-  Widget _buildListItem(Task itemTask, AppDatabase database) {
+  Widget _buildListItem(Task itemTask, TaskDao dao) {
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       //logic to delete the data
@@ -56,7 +78,7 @@ class _HomePageState extends State<HomePage> {
           caption: 'Delete',
           color: Colors.red,
           icon: Icons.delete,
-          onTap: () => database.deleteTask(itemTask),
+          onTap: () => dao.deleteTask(itemTask),
         )
       ],
       child: CheckboxListTile(
@@ -65,9 +87,9 @@ class _HomePageState extends State<HomePage> {
         value: itemTask.completed,
         //when user press the checkbox then update the value
         onChanged: (newValue) {
-          //get the old task and copy with new updated Value of completed 
-          //means change only completed value 
-          database.updateTask(itemTask.copyWith(completed: newValue));
+          //get the old task and copy with new updated Value of completed
+          //means change only completed value
+          dao.updateTask(itemTask.copyWith(completed: newValue));
         },
       ),
     );

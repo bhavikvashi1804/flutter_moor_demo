@@ -45,7 +45,12 @@ class AppDatabase extends _$AppDatabase {
 }
 
 
-@UseDao(tables: [Tasks])
+@UseDao(
+  tables: [Tasks],
+  queries: {
+    'completedTasksGenerated':'SELECT * FROM tasks WHERE completed = 1 ORDER BY due_date DESC, name;'
+  }
+)
 class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   final AppDatabase db;
 
@@ -85,6 +90,20 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
     .watch();
   }
 
+  
+  Stream<List<Task>> watchCompletedTasksCustom() {
+    return customSelectStream(
+      'SELECT * FROM tasks WHERE completed = 1 ORDER BY due_date DESC, name;',
+      // The Stream will emit new values when the data inside the Tasks table changes
+      readsFrom: {tasks},
+    )
+        // customSelect or customSelectStream gives us QueryRow list
+        // This runs each time the Stream emits a new value.
+        .map((rows) {
+      // Turning the data of a row into a Task object
+      return rows.map((row) => Task.fromData(row.data, db)).toList();
+    });
+  }
 
   Future insertTask(Insertable<Task> task) => into(tasks).insert(task);
   Future updateTask(Insertable<Task> task) => update(tasks).replace(task);

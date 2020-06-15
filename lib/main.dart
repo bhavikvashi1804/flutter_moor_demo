@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Provider(
-      builder: (context) => AppDatabase(),
+      builder: (context) => AppDatabase().taskDao,
       child: MaterialApp(
         title: 'Flutter Moor',
         home: HomePage(),
