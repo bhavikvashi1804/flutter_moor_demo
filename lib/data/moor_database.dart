@@ -21,7 +21,7 @@ class Tags extends Table{
   Set<Column> get primaryKey =>{name};
 }
 
-@UseMoor(tables: [Tasks], daos: [TaskDao])
+@UseMoor(tables: [Tasks,Tags], daos: [TaskDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase()
       : super((FlutterQueryExecutor.inDatabaseFolder(
@@ -117,4 +117,15 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
   Future insertTask(Insertable<Task> task) => into(tasks).insert(task);
   Future updateTask(Insertable<Task> task) => update(tasks).replace(task);
   Future deleteTask(Insertable<Task> task) => delete(tasks).delete(task);
+}
+
+
+@UseDao(tables: [Tags])
+class TagDao extends DatabaseAccessor<AppDatabase> with _$TagDaoMixin {
+  final AppDatabase db;
+
+  TagDao(this.db) : super(db);
+
+  Stream<List<Tag>> watchTags() => select(tags).watch();
+  Future insertTag(Insertable<Tag> tag) => into(tags).insert(tag);
 }
