@@ -43,6 +43,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(tags);
       }
     },
+    // Runs after all the migrations but BEFORE any queries have a chance to execute
+    beforeOpen: (db, details) async {
+      await db.customStatement('PRAGMA foreign_keys = ON');
+    },
   );
 
 
