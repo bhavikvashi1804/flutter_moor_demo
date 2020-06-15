@@ -24,5 +24,18 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
+
+  // All tables have getters in the generated class - we can select the tasks table
+  Future<List<Task>> getAllTasks() => select(tasks).get();
+
+  // Moor supports Streams which emit elements when the watched data changes
+  Stream<List<Task>> watchAllTasks() => select(tasks).watch();
+
+  Future insertTask(Task task) => into(tasks).insert(task);
+
+  // Updates a Task with a matching primary key
+  Future updateTask(Task task) => update(tasks).replace(task);
+
+  Future deleteTask(Task task) => delete(tasks).delete(task);
   
 }
