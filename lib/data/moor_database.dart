@@ -12,8 +12,7 @@ class Tasks extends Table {
   BoolColumn get completed => boolean().withDefault(Constant(false))();
 }
 
-@UseMoor(tables: [Tasks])
-
+@UseMoor(tables: [Tasks], daos: [TaskDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase()
       : super((FlutterQueryExecutor.inDatabaseFolder(
@@ -23,6 +22,10 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+
+
+  /*
 
 
   // All tables have getters in the generated class - we can select the tasks table
@@ -37,5 +40,53 @@ class AppDatabase extends _$AppDatabase {
   Future updateTask(Task task) => update(tasks).replace(task);
 
   Future deleteTask(Task task) => delete(tasks).delete(task);
+  */
   
+}
+
+
+@UseDao(tables: [Tasks])
+class TaskDao extends DatabaseAccessor<AppDatabase> with _$TaskDaoMixin {
+  final AppDatabase db;
+
+  // Called by the AppDatabase class
+  TaskDao(this.db) : super(db);
+
+  Future<List<Task>> getAllTasks() => select(tasks).get();
+  Stream<List<Task>> watchAllTasks(){
+    return (select(tasks)..orderBy([
+      (t)=>OrderingTerm(
+        expression: t.dueDate,
+        mode: OrderingMode.desc
+      ),
+       (t)=>OrderingTerm(
+        expression: t.name,
+        mode: OrderingMode.asc
+      ),
+    ]))
+    .watch();
+    
+  }
+
+
+  Stream<List<Task>> watchCompletedTasks(){
+    return (select(tasks)..orderBy([
+      (t)=>OrderingTerm(
+        expression: t.dueDate,
+        mode: OrderingMode.desc
+      ),
+       (t)=>OrderingTerm(
+        expression: t.name,
+        mode: OrderingMode.asc
+      ),
+    ])
+    ..where((tbl) => tbl.completed.equals(true))
+    )
+    .watch();
+  }
+
+
+  Future insertTask(Insertable<Task> task) => into(tasks).insert(task);
+  Future updateTask(Insertable<Task> task) => update(tasks).replace(task);
+  Future deleteTask(Insertable<Task> task) => delete(tasks).delete(task);
 }
