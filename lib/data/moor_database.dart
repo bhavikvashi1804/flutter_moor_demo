@@ -34,6 +34,18 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 2;
 
 
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    // Runs if the database has already been opened on the device with a lower version
+    onUpgrade: (migrator, from, to) async {
+      if (from == 1) {
+        await migrator.addColumn(tasks, tasks.tagName);
+        await migrator.createTable(tags);
+      }
+    },
+  );
+
+
 
   /*
 
