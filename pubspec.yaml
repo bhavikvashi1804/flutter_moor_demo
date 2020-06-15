@@ -10,10 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  moor: ^1.5.0
-
+  flutter_material_color_picker: ^1.0.5
   cupertino_icons: ^0.1.3
-  moor_flutter: ^1.4.0
+  moor_flutter: ^1.6.0
 
   # For the UI
   provider: ^3.0.0+1
@@ -22,7 +21,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  moor_generator: ^1.4.0
+  moor_generator: ^1.6.0
   build_runner:
 
 flutter:
