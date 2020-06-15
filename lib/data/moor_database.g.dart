@@ -397,6 +397,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $TagsTable get tags => _tags ??= $TagsTable(this);
   TaskDao _taskDao;
   TaskDao get taskDao => _taskDao ??= TaskDao(this as AppDatabase);
+  TagDao _tagDao;
+  TagDao get tagDao => _tagDao ??= TagDao(this as AppDatabase);
   @override
   List<TableInfo> get allTables => [tasks, tags];
 }

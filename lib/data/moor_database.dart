@@ -21,7 +21,7 @@ class Tags extends Table{
   Set<Column> get primaryKey =>{name};
 }
 
-@UseMoor(tables: [Tasks,Tags], daos: [TaskDao])
+@UseMoor(tables: [Tasks,Tags], daos: [TaskDao,TagDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase()
       : super((FlutterQueryExecutor.inDatabaseFolder(
