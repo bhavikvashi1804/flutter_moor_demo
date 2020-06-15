@@ -43,12 +43,14 @@ class _NewTaskInputState extends State<NewTaskInput> {
         controller: controller,
         decoration: InputDecoration(hintText: 'Task Name'),
         onSubmitted: (inputName) {
+          //get the database refrence using provider
           final database = Provider.of<AppDatabase>(context);
           final task = Task(
             name: inputName,
             dueDate: newTaskDate,
           );
           database.insertTask(task);
+          //clear the data hold by Text contoller and date controller
           resetValuesAfterSubmit();
         },
       ),
